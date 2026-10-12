@@ -49,7 +49,7 @@ Read [brand.md](brand.md) first — it holds the saved colors, font and voice no
 
 If a folder named **B-roll kit** exists (search `~`, `~/Desktop`, `~/Documents`, `~/Downloads`, `~/Movies`, `~/Pictures`), use its logo, photos and graphics for intros, end cards and cutaways; note its path in `brand.md` once found.
 
-Captions in brand style: `python3 ~/.claude/skills/video-editor/scripts/captions.py <words.json> <out.ass> --w W --h H` builds a 2–4-word-per-line karaoke-style `.ass` using brand.md's colors and font; burn it with `-vf "subtitles=out.ass:fontsdir=$HOME/.claude/skills/video-editor/fonts"` (put the brand font file in this skill's `fonts/` folder, so captions never depend on what's installed system-wide). For designed graphics, lower-thirds, cinematic or "behind-the-subject" captions, use the HyperFrames skills instead: `/talking-head-recut` (graphic overlays) or `/embedded-captions` (cinematic captions) — run the cut/level/grade here first, then hand them the finished cut.
+Captions in brand style: `python3 ~/.claude/skills/video-editor/scripts/captions.py <words.json> <capdir> --w W --h H [--keep keep.json]` draws 2–4-word lines (white on the primary color, spoken word in the accent) as transparent PNGs with ImageMagick and writes `<capdir>/captions.txt`; overlay it with `ffmpeg -i cut.mp4 -f concat -safe 0 -i <capdir>/captions.txt -filter_complex "[1:v]format=rgba[c];[0:v][c]overlay=0:0:eof_action=pass" ...`. It deliberately avoids ffmpeg's `subtitles`/`drawtext` filters: Homebrew's ffmpeg 9 is built without libass/freetype, so those filters don't exist (found 2026-10-12). The brand font file ships inside this skill (`fonts/`). For designed graphics, lower-thirds, cinematic or "behind-the-subject" captions, use the HyperFrames skills instead: `/talking-head-recut` (graphic overlays) or `/embedded-captions` (cinematic captions) — run the cut/level/grade here first, then hand them the finished cut.
 
 ## Formats and quality
 
@@ -81,6 +81,6 @@ If blocked (missing tool, file won't decode, footage unusable), stop and say exa
 
 ## Setup facts (verified 2026-10-12 on macOS; re-check with `command -v`)
 
-- Tools: `ffmpeg`/`ffprobe` (brew), `whisper-cli` (brew `whisper-cpp`), Node.js 22+ (needed by HyperFrames, `npx hyperframes ...`). Re-check with `command -v`. If `ffmpeg` fails with "Library not loaded … libx265", a brew upgrade broke it: `brew reinstall ffmpeg`.
+- Tools: `ffmpeg`/`ffprobe` (brew), `whisper-cli` (brew `whisper.cpp` — renamed from `whisper-cpp`), `magick` (brew `imagemagick`, for captions), Node.js 22+ (needed by HyperFrames, `npx hyperframes ...`). Re-check with `command -v`. Homebrew may build these from source on Intel Macs (slow — run installs in the background). If `ffmpeg` fails with "Library not loaded … libx265", a brew upgrade broke it: `brew reinstall ffmpeg`.
 - Whisper models live in `~/.cache/whisper-cpp/` (`ggml-small.en.bin` default; `transcribe.sh` downloads a missing one from huggingface.co/ggerganov/whisper.cpp).
 - HyperFrames skills are installed in `~/.claude/skills/` (hyperframes, embedded-captions, talking-head-recut, media-use, …) via `npx skills add heygen-com/hyperframes -g`. Update with `npx skills update -g`.

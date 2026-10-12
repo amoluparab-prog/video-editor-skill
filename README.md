@@ -9,7 +9,7 @@ You're the director. It asks three questions before every edit, never touches yo
 **1. Take the skill directly.** Copy `skills/video-editor` into `~/.claude/skills/`, then install the free tools it uses:
 
 ```bash
-brew install ffmpeg whisper-cpp node
+brew install ffmpeg whisper.cpp imagemagick node
 npx skills add heygen-com/hyperframes -g
 ```
 

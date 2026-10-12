@@ -12,8 +12,10 @@ if [ ! -s "$mfile" ]; then
   mv "$mfile.part" "$mfile"
 fi
 ffmpeg -hide_banner -loglevel error -y -i "$src" -vn -ac 1 -ar 16000 -c:a pcm_s16le "$work/audio16k.wav"
+# Metal on Intel Macs returns empty/garbage transcripts (seen 2026-10-12) — use CPU there.
+gpu=""; [ "$(uname -m)" = "x86_64" ] && gpu="-ng"
 lang=en; case "$model" in *.en) ;; *) lang=auto;; esac
-whisper-cli -m "$mfile" -f "$work/audio16k.wav" -l "$lang" -ml 1 -sow -oj -of "$work/whisper" >/dev/null 2>&1
+whisper-cli $gpu -m "$mfile" -f "$work/audio16k.wav" -l "$lang" -ml 1 -sow -oj -of "$work/whisper" >/dev/null 2>&1
 python3 - "$work" <<'PY'
 import json, sys, os
 work = sys.argv[1]
