@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Word-level transcript with whisper.cpp.
-# Usage: transcribe.sh <video> <workdir>   (MODEL=small.en|medium|base.en ...)
+# Usage: transcribe.sh <video> <workdir>   (MODEL=small.en|medium|base.en ..., WLANG=hi for Hindi)
 # Writes <workdir>/audio16k.wav, words.json [{"w","start","end"}], transcript.txt
 set -euo pipefail
 src="$1"; work="$2"; model="${MODEL:-small.en}"
@@ -14,7 +14,7 @@ fi
 ffmpeg -hide_banner -loglevel error -y -i "$src" -vn -ac 1 -ar 16000 -c:a pcm_s16le "$work/audio16k.wav"
 # Metal on Intel Macs returns empty/garbage transcripts (seen 2026-10-12) — use CPU there.
 gpu=""; [ "$(uname -m)" = "x86_64" ] && gpu="-ng"
-lang=en; case "$model" in *.en) ;; *) lang=auto;; esac
+lang=en; case "$model" in *.en) ;; *) lang="${WLANG:-auto}";; esac   # WLANG=hi for Hindi (needs a multilingual model, e.g. MODEL=medium)
 whisper-cli $gpu -m "$mfile" -f "$work/audio16k.wav" -l "$lang" -ml 1 -sow -oj -of "$work/whisper" >/dev/null 2>&1
 python3 - "$work" <<'PY'
 import json, sys, os
